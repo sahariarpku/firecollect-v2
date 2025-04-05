@@ -19,4 +19,10 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  define: {
+    'process.env': {
+      NODE_ENV: JSON.stringify(mode),
+      BASE_URL: JSON.stringify('/'),
+    },
+  },
 }));

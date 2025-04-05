@@ -36,13 +36,14 @@ Before you begin, ensure you have the following installed:
 - Node.js (v18 or higher)
 - npm or yarn
 - Git
+- Supabase CLI (for local development)
 
 ## 🔧 Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/sahariarpku/firecollect-v1.git
-   cd firecollect-v1
+   git clone https://github.com/sahariarpku/firecollect-v2.git
+   cd firecollect-v2
    ```
 
 2. Install dependencies:
@@ -65,7 +66,105 @@ Before you begin, ensure you have the following installed:
    VITE_FIRECRAWL_API_URL=your_firecrawl_api_url
    ```
 
-   Replace the placeholder values with your actual Supabase credentials.
+## 🔐 Supabase Setup Guide
+
+### 1. Create a Supabase Project
+
+1. Go to [https://supabase.com](https://supabase.com) and sign up/login
+2. Click "New Project"
+3. Fill in your project details:
+   - Name: `firecollect-v2`
+   - Database Password: (save this for later)
+   - Region: Choose the closest to your users
+   - Pricing Plan: Free tier is sufficient for development
+
+### 2. Configure Authentication
+
+1. In your Supabase dashboard, go to Authentication > Settings
+2. Enable Email authentication
+3. Configure Email Templates (optional but recommended)
+4. Set up OAuth providers if needed (Google, GitHub, etc.)
+
+### 3. Database Setup
+
+1. Install Supabase CLI:
+   ```bash
+   npm install supabase --save-dev
+   ```
+
+2. Initialize Supabase in your project:
+   ```bash
+   npx supabase init
+   ```
+
+3. Link your project:
+   ```bash
+   npx supabase link --project-ref your_project_id
+   ```
+   You can find your project ID in the Supabase dashboard under Project Settings > General
+
+4. Push the database schema:
+   ```bash
+   npx supabase db push
+   ```
+
+### 4. Storage Setup
+
+1. In Supabase dashboard, go to Storage
+2. Create a new bucket named `images`
+3. Set the following bucket policies:
+   ```sql
+   -- Allow authenticated users to upload files
+   CREATE POLICY "Allow authenticated uploads"
+   ON storage.objects FOR INSERT TO authenticated
+   WITH CHECK (bucket_id = 'images');
+
+   -- Allow public access to view files
+   CREATE POLICY "Allow public access"
+   ON storage.objects FOR SELECT TO public
+   USING (bucket_id = 'images');
+   ```
+
+### 5. Row Level Security (RLS)
+
+The project includes RLS policies for data security. To enable them:
+
+1. In Supabase dashboard, go to Authentication > Policies
+2. Enable RLS on all tables
+3. Apply the following policies:
+
+```sql
+-- Example RLS policy for images table
+CREATE POLICY "Users can view their own images"
+ON public.images
+FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert their own images"
+ON public.images
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+```
+
+### 6. Database Functions
+
+The project includes several database functions for image processing. To set them up:
+
+1. In Supabase dashboard, go to SQL Editor
+2. Run the SQL from `supabase/functions/` directory
+3. Test the functions using the SQL Editor
+
+### 7. Environment Variables
+
+After setting up Supabase, update your `.env` file with the following values from your Supabase dashboard:
+
+1. Go to Project Settings > API
+2. Copy the following values:
+   - Project URL → `VITE_SUPABASE_URL`
+   - anon/public key → `VITE_SUPABASE_ANON_KEY`
+   - service_role key → `VITE_SUPABASE_SERVICE_ROLE_KEY`
+   - Project ID → `VITE_SUPABASE_PROJECT_ID`
+   - Database Password → `VITE_SUPABASE_DB_PASSWORD`
 
 ## 🚀 Development
 
@@ -100,94 +199,22 @@ yarn preview
 ## 📁 Project Structure
 
 ```
-firecollect-v1/
+firecollect-v2/
 ├── src/
 │   ├── components/     # React components
 │   ├── integrations/  # Third-party integrations
 │   ├── lib/          # Utility functions and configurations
 │   ├── pages/        # Page components
 │   └── App.tsx       # Main application component
+├── supabase/
+│   ├── migrations/   # Database migrations
+│   ├── functions/    # Database functions
+│   └── config.toml   # Supabase configuration
 ├── public/           # Static assets
 ├── .env             # Environment variables
 ├── package.json     # Project dependencies
 └── vite.config.ts   # Vite configuration
 ```
-
-## 🔐 Authentication
-
-The application uses Supabase for authentication. To set up authentication:
-
-1. Create a Supabase project at [https://supabase.com](https://supabase.com)
-2. Enable Email authentication in your Supabase project
-3. Copy your project URL and anon key to the `.env` file
-4. Create a user through the sign-up form or directly in the Supabase dashboard
-
-## 📊 Database Setup
-
-To push the database schema to Supabase:
-
-1. Install Supabase CLI:
-   ```bash
-   npm install supabase --save-dev
-   ```
-
-2. Initialize Supabase (creates necessary configuration files):
-   ```bash
-   npx supabase init
-   ```
-
-3. Link your project:
-   ```bash
-   npx supabase link --project-ref your_project_id
-   ```
-   Replace `your_project_id` with the ID from your Supabase project settings.
-
-4. Push the database schema:
-   ```bash
-   npx supabase db push
-   ```
-
-### Troubleshooting Database Setup
-
-If you encounter issues:
-
-1. **Wrong Database Connection**
-   - Double-check your database password in `.env`
-   - Ensure your project is active in the Supabase dashboard
-   - Try resetting your database password in Supabase dashboard
-
-2. **Project Linking Issues**
-   - Verify your project ID is correct
-   - Make sure you're logged in to Supabase CLI (`npx supabase login`)
-   - Check if your project is active in the dashboard
-
-3. **Migration Errors**
-   - Clear local Supabase configuration:
-     ```bash
-     rm -rf .supabase
-     npx supabase init
-     ```
-   - Relink and push:
-     ```bash
-     npx supabase link --project-ref your_project_id
-     npx supabase db push
-     ```
-
-4. **Permission Issues**
-   - Verify your service role key has the correct permissions
-   - Check if your project's database is not paused
-   - Ensure RLS (Row Level Security) policies are properly configured
-
-### Database Schema
-
-The project includes several key tables:
-
-- `users`: User profiles and authentication data
-- `images`: Image metadata and storage references
-- `analysis_results`: Results from image analysis
-- `user_settings`: User preferences and configurations
-
-All tables include proper foreign key relationships and RLS policies for security.
 
 ## 🤝 Contributing
 

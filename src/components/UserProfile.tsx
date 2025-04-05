@@ -19,9 +19,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { User } from '@supabase/supabase-js';
-import { BrainCircuit, Settings } from 'lucide-react';
+import { BrainCircuit, Settings, FileText } from 'lucide-react';
 import { AISettings } from './AISettings';
 import { FirecrawlService } from '@/services/FirecrawlService';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileProps {
   user: User | null;
@@ -36,6 +37,7 @@ const UserProfile = ({ user, onLogout }: UserProfileProps) => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [apiKey, setApiKey] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
@@ -127,6 +129,10 @@ const UserProfile = ({ user, onLogout }: UserProfileProps) => {
           <DropdownMenuItem onSelect={() => setIsAISettingsOpen(true)}>
             <BrainCircuit className="h-4 w-4 mr-2" />
             AI Settings
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => navigate('/reports')}>
+            <FileText className="h-4 w-4 mr-2" />
+            My Reports
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem 

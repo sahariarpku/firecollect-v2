@@ -13,6 +13,7 @@ import { FirecrawlService } from '@/services/FirecrawlService';
 import { PostgrestResponse } from '@supabase/supabase-js';
 import { Loader2 } from 'lucide-react';
 import { Pencil } from 'lucide-react';
+import { ReportGenerator } from './ReportGenerator';
 
 interface Reference {
   id: string;
@@ -1205,21 +1206,24 @@ Return ONLY the outline structure using # and ## notation.`;
               onChange={(e) => setCustomPrompt(e.target.value)}
               className="min-h-[100px]"
             />
-            <div className="flex gap-4">
-              <Button 
+            <div className="flex justify-between items-center gap-4">
+              <Button
                 onClick={handleGenerateOutline}
                 disabled={loading}
                 className="flex-1"
               >
-                {loading ? 'Generating...' : 'Generate Structure'}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Generating Structure...
+                  </>
+                ) : (
+                  'Generate Structure'
+                )}
               </Button>
+
               {mindMap.length > 0 && (
-                <Button
-                  onClick={generateLatexDocument}
-                  variant="outline"
-                >
-                  Export as LaTeX
-                </Button>
+                <ReportGenerator mindMap={mindMap} searchQuery={searchQuery} />
               )}
             </div>
           </div>

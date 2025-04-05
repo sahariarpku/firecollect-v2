@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Toaster } from 'sonner';
@@ -11,6 +12,10 @@ import { ResearchManager } from '@/components/ResearchManager';
 import ZoteroConnect from '@/components/ZoteroConnect';
 import UserProfile from '@/components/UserProfile';
 import Canvas from '@/components/Canvas';
+import { Header } from '@/components/Header';
+import ReportsList from '@/pages/reports';
+import ReportView from '@/pages/reports/[id]';
+import NotFound from '@/pages/NotFound';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -70,67 +75,73 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen flex">
-      <SearchHistory 
-        onSelectQuery={handleSelectQuery}
-        onViewData={handleViewData}
-      />
-      
-      <div className="flex-1 min-h-screen overflow-y-auto">
-        <div className="p-4 flex justify-end gap-2">
-          <UserProfile user={user} onLogout={handleLogout} />
+    <Router>
+      <div className="min-h-screen flex">
+        <SearchHistory 
+          onSelectQuery={handleSelectQuery}
+          onViewData={handleViewData}
+        />
+        
+        <div className="flex-1 min-h-screen overflow-y-auto">
+          <Header />
+          <div className="p-4 flex justify-end gap-2">
+            <UserProfile user={user} onLogout={handleLogout} />
+          </div>
+
+          <Routes>
+            <Route path="/" element={
+              <main className="container mx-auto px-4 pb-8">
+                <Tabs 
+                  value={activeTab} 
+                  onValueChange={setActiveTab}
+                  className="w-full"
+                >
+                  <TabsList className="mb-4">
+                    <TabsTrigger value="papers" className="flex items-center gap-1">
+                      <MessageSquare className="h-4 w-4" />
+                      Academic Paper Search
+                    </TabsTrigger>
+                    <TabsTrigger value="pdfs" className="flex items-center gap-1">
+                      <FileText className="h-4 w-4" />
+                      PDF Analysis
+                    </TabsTrigger>
+                    <TabsTrigger value="zotero" className="flex items-center gap-1">
+                      <Library className="h-4 w-4" />
+                      Connect Zotero
+                    </TabsTrigger>
+                    <TabsTrigger value="canvas" className="flex items-center gap-1">
+                      <PenTool className="h-4 w-4" />
+                      Canvas
+                    </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="papers">
+                    <ResearchManager 
+                      activeTab={activeTab}
+                      initialQuery={selectedQuery}
+                      initialSearchId={selectedId}
+                    />
+                  </TabsContent>
+                  <TabsContent value="pdfs">
+                    <PDFUploadView />
+                  </TabsContent>
+                  <TabsContent value="zotero">
+                    <ZoteroConnect />
+                  </TabsContent>
+                  <TabsContent value="canvas">
+                    <Canvas />
+                  </TabsContent>
+                </Tabs>
+              </main>
+            } />
+            <Route path="/reports" element={<ReportsList />} />
+            <Route path="/reports/:id" element={<ReportView />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </div>
-
-        <main className="container mx-auto px-4 pb-8">
-          <Tabs 
-            value={activeTab} 
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <TabsList className="mb-4">
-              <TabsTrigger value="papers" className="flex items-center gap-1">
-                <MessageSquare className="h-4 w-4" />
-                Academic Paper Search
-              </TabsTrigger>
-              <TabsTrigger value="pdfs" className="flex items-center gap-1">
-                <FileText className="h-4 w-4" />
-                PDF Analysis
-              </TabsTrigger>
-              <TabsTrigger value="zotero" className="flex items-center gap-1">
-                <Library className="h-4 w-4" />
-                Connect Zotero
-              </TabsTrigger>
-              <TabsTrigger value="canvas" className="flex items-center gap-1">
-                <PenTool className="h-4 w-4" />
-                Canvas
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="papers">
-              <ResearchManager 
-                activeTab={activeTab}
-                initialQuery={selectedQuery}
-                initialSearchId={selectedId}
-              />
-            </TabsContent>
-
-            <TabsContent value="pdfs">
-              <PDFUploadView />
-            </TabsContent>
-
-            <TabsContent value="zotero">
-              <ZoteroConnect />
-            </TabsContent>
-
-            <TabsContent value="canvas">
-              <Canvas />
-            </TabsContent>
-          </Tabs>
-        </main>
       </div>
-
       <Toaster />
-    </div>
+    </Router>
   );
 }
 
