@@ -111,18 +111,18 @@ Before you begin, ensure you have the following installed:
 ### 4. Storage Setup
 
 1. In Supabase dashboard, go to Storage
-2. Create a new bucket named `images`
+2. Create a new bucket named `pdfs`
 3. Set the following bucket policies:
    ```sql
    -- Allow authenticated users to upload files
    CREATE POLICY "Allow authenticated uploads"
    ON storage.objects FOR INSERT TO authenticated
-   WITH CHECK (bucket_id = 'images');
+   WITH CHECK (bucket_id = 'pdfs');
 
    -- Allow public access to view files
    CREATE POLICY "Allow public access"
    ON storage.objects FOR SELECT TO public
-   USING (bucket_id = 'images');
+   USING (bucket_id = 'pdfs');
    ```
 
 ### 5. Row Level Security (RLS)
